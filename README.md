@@ -1,7 +1,7 @@
 
 # GIT Subfolder Permssions
 
-** This much more of a POC than a finished projetc. Many things are missing, and there are probably some security issues. Use on your own resonsiblity **
+**This much more of a POC than a finished project. Many things are missing, and there are probably some security issues. Use on your own resonsiblity**
 
 The aim of this project is to expose only certain subfolders of a GIT project,
 usually to external collborators. 
