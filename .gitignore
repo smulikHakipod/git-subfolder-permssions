@@ -1,0 +1,6 @@
+.vscode
+.history/
+__pycache__/
+test_private_repo
+git-repo
+cookies.json

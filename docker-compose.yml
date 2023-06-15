@@ -1,0 +1,58 @@
+# If you dont trust yaronshani/git-subfolder-project:0.0.1 image you can use "build: ." instead to build it locally
+
+services:
+  httpd:
+    #build: .
+    image: yaronshani/git-subfolder-project:0.0.1
+    volumes:
+      - ./apache2-git-subfolder.conf:/usr/local/apache2/conf/httpd.conf
+      - ./apache-selfsigned.key:/usr/local/apache2/conf/apache-selfsigned.key
+      - ./apache-selfsigned.crt:/usr/local/apache2/conf/apache-selfsigned.crt
+      - ./git-hook.py:/git-hooks/git
+      - ./git-http-hook.py:/git-hooks/git-http-hook.py
+      - ./git-repo:/git-repo
+    command: ["httpd-foreground"]
+    environment:
+      - GIT_FILTER_PATH:.gitfilterspec
+      - ADDITIONAL_PATH=/git-hooks/git
+    ports:
+      - 443:443
+
+  
+  mitm-proxy:
+    #build: .
+    image: yaronshani/git-subfolder-project:0.0.1
+    environment:
+      - REPO_PATH=${REPO_PATH}
+      - GIT_FILTER_PATH=/git-repo/${REPO_PATH}/.gitfilterspec
+    volumes:
+      - ./git-repo:/git-repo
+      - ./cookies.json:/app/cookies.json
+      - ./mitm.py:/app/mitm.py
+    command: ["mitmdump", "-s", "/app/mitm.py", "-p", "8080"]
+    ports:
+      - 127.0.0.1:8080:8080
+
+  github-web-login:
+    #build: .
+    image: yaronshani/git-subfolder-project:0.0.1
+    environment:
+      - GIT_USERNAME=${GIT_USERNAME}
+      - GIT_PASSWORD=${GIT_PASSWORD}
+    volumes:
+      - ./cookies.json:/app/cookies.json
+      - ./github-web-login.py:/app/github-web-login.py
+    command: ["python3", "/app/github-web-login.py", "${GIT_USERNAME}", "${GIT_PASSWORD}"]
+  
+  git-clone-and-refresh:
+    build: .
+    environment:
+      - GIT_USERNAME=${GIT_USERNAME}
+      - GIT_TOKEN=${GIT_TOKEN}
+      - REPO_PATH=${REPO_PATH}
+
+    volumes:
+      - ./git-repo:/app/git-repo
+      - ./git-clone-and-refresh.sh:/app/git-clone-and-refresh.sh
+      
+    command: ["/app/git-clone-and-refresh.sh", "${GIT_USERNAME}", "${GIT_TOKEN}", "${REPO_PATH}"]
