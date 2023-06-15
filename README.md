@@ -3,6 +3,8 @@
 
 **This much more of a POC than a finished project. Many things are missing, and there are probably some security issues. Use on your own resonsiblity**
 
+**Currently it aims to work on Github, but the concept with some changes can work on other platforms**
+
 The aim of this project is to expose only certain subfolders of a GIT project,
 usually to external collborators. 
 
