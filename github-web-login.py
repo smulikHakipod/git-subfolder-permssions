@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import asyncio
 from pyppeteer import launch
 import sys

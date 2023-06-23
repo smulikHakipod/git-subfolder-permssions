@@ -2,11 +2,6 @@
 FROM httpd:2.4.57-alpine3.18
 
 
-# install git
-RUN apk fix && \
-    apk --no-cache --update add git git-lfs git-daemon gpg less openssh patch && \
-    git lfs install
-
 
 # Install python/pip
 ENV PYTHONUNBUFFERED=1
@@ -20,7 +15,29 @@ RUN apk add libffi-dev
 RUN apk add python3-dev
 
 RUN apk add gcc
-RUN apk add curl
+RUN apk add curl curl-dev libcurl
+RUN apk add openssl-dev zlib-dev
+
+# install git
+RUN apk --update add gcc make g++ zlib-dev autoconf
+RUN apk add gettext asciidoc xmlto
+RUN curl https://codeload.github.com/git/git/zip/refs/tags/v2.41.0 -o git-2.41.zip
+RUN unzip git-2.41.zip
+RUN cd git-2.41.0 && make configure && ./configure --prefix=/usr &&  make -j 4 all doc && make install install-doc install-html
+RUN rm -rf git-lfs-3.3.0.zip git-2.41.0
+
+# install git lfs
+RUN curl https://codeload.github.com/git-lfs/git-lfs/zip/refs/tags/v3.3.0 -o git-lfs-3.3.0.zip
+RUN unzip git-lfs-3.3.0.zip
+
+RUN apk add go
+RUN cd git-lfs-3.3.0 && make -j 8 && cp bin/git-lfs /usr/bin/git-lfs
+RUN rm -rf git-lfs-3.3.0 git-lfs-3.3.0.zip
+
+RUN apk fix && \
+    apk --no-cache --update add gpg less openssh patch && \
+    git lfs install
+
 RUN apk add cargo 
 
 COPY ./requirements.txt /tmp/requirements.txt
@@ -35,13 +52,13 @@ ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium-browser
 RUN apk upgrade --no-cache --available \
     && apk add --no-cache \
       chromium-swiftshader \
-      ttf-freefont \
+      ttf-freefont \  
       font-noto-emoji \
     && apk add --no-cache \
       --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing \
       font-wqy-zenhei
 
 RUN apk add bash
-
+RUN apk add -U shadow
 RUN mkdir -p /git-hooks/
-CMD export PATH=$ADDITIONAL_PATH:$PATH;
+RUN cp /usr/libexec/git-core/git /usr/libexec/git-core/git2

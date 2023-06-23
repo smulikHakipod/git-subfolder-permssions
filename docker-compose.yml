@@ -3,25 +3,25 @@
 services:
   httpd:
     #build: .
-    image: yaronshani/git-subfolder-project:0.0.1
+    image: yaronshani/git-subfolder-project:0.0.2
     volumes:
       - ./apache2-git-subfolder.conf:/usr/local/apache2/conf/httpd.conf
       - ./apache-selfsigned.key:/usr/local/apache2/conf/apache-selfsigned.key
       - ./apache-selfsigned.crt:/usr/local/apache2/conf/apache-selfsigned.crt
-      - ./git-hook.py:/git-hooks/git
+      - ./git-hook.py:/usr/libexec/git-core/git 
       - ./git-http-hook.py:/git-hooks/git-http-hook.py
       - ./git-repo:/git-repo
     command: ["httpd-foreground"]
     environment:
       - GIT_FILTER_PATH:.gitfilterspec
-      - ADDITIONAL_PATH=/git-hooks/git
     ports:
       - 443:443
 
   
   mitm-proxy:
     #build: .
-    image: yaronshani/git-subfolder-project:0.0.1
+    user: www-data
+    image: yaronshani/git-subfolder-project:0.0.2
     environment:
       - REPO_PATH=${REPO_PATH}
       - GIT_FILTER_PATH=/git-repo/${REPO_PATH}/.gitfilterspec
@@ -35,17 +35,19 @@ services:
 
   github-web-login:
     #build: .
-    image: yaronshani/git-subfolder-project:0.0.1
+    image: yaronshani/git-subfolder-project:0.0.2
     environment:
       - GIT_USERNAME=${GIT_USERNAME}
       - GIT_PASSWORD=${GIT_PASSWORD}
     volumes:
       - ./cookies.json:/app/cookies.json
       - ./github-web-login.py:/app/github-web-login.py
-    command: ["python3", "/app/github-web-login.py", "${GIT_USERNAME}", "${GIT_PASSWORD}"]
+    command: ["/app/github-web-login.py", "${GIT_USERNAME}", "${GIT_PASSWORD}"]
   
   git-clone-and-refresh:
-    build: .
+    #build: .
+    user: www-data
+    image: yaronshani/git-subfolder-project:0.0.2
     environment:
       - GIT_USERNAME=${GIT_USERNAME}
       - GIT_TOKEN=${GIT_TOKEN}
